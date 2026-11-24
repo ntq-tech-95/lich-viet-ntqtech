@@ -1,0 +1,120 @@
+name: Build Lich Viet (Web, Android, iOS, Windows, macOS)
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  test-and-web:
+    name: Test & Web/PWA Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-pwa-dist
+          path: dist/
+
+  build-android:
+    name: Build Android APK
+    needs: test-and-web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run cap:sync
+      - name: Build Debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lich-Viet-Android-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+  build-windows:
+    name: Build Windows EXE
+    needs: test-and-web
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build Windows Installer & Portable EXE
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npm run dist:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lich-Viet-Windows-EXE
+          path: |
+            release/*.exe
+            release/*.blockmap
+
+  build-macos:
+    name: Build macOS DMG
+    needs: test-and-web
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build macOS DMG
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npm run dist:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lich-Viet-macOS-DMG
+          path: release/*.dmg
+
+  build-ios:
+    name: Build iOS Archive (Unsigned)
+    needs: test-and-web
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run cap:sync
+      - name: Build Unsigned iOS Archive
+        working-directory: ios/App
+        run: |
+          xcodebuild \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$PWD/build/LichViet.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            archive
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lich-Viet-iOS-Archive
+          path: ios/App/build/LichViet.xcarchive

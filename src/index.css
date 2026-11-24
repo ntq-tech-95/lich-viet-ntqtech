@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --bg-canvas: #fbf5eb;
+    --bg-surface: #fffdf9;
+    --bg-muted: #f4eadb;
+    --text-primary: #231815;
+    --text-secondary: #6f5a4f;
+    --border-subtle: #eadbc6;
+  }
+
+  .dark {
+    --bg-canvas: #130e0c;
+    --bg-surface: #1d1613;
+    --bg-muted: #281f1b;
+    --text-primary: #f7efe5;
+    --text-secondary: #b7a394;
+    --border-subtle: #382a23;
+  }
+
+  html {
+    font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(217, 119, 6, 0.08), transparent 36%),
+      radial-gradient(circle at 88% 12%, rgba(185, 28, 28, 0.07), transparent 40%);
+    color: var(--text-primary);
+    margin: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(217, 119, 6, 0.11), transparent 38%),
+      radial-gradient(circle at 85% 15%, rgba(185, 28, 28, 0.14), transparent 42%);
+  }
+}
+
+.font-display {
+  font-family: 'Playfair Display', 'Be Vietnam Pro', Georgia, serif;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Họa tiết vân giấy lụa nhẹ cho thẻ lịch */
+.silk-card {
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.65) 0%,
+    rgba(255, 251, 244, 0.95) 100%
+  );
+}
+
+.dark .silk-card {
+  background-image: linear-gradient(
+    180deg,
+    rgba(35, 26, 22, 0.92) 0%,
+    rgba(25, 19, 16, 0.98) 100%
+  );
+}
