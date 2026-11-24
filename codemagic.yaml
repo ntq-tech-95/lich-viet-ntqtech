@@ -1,0 +1,65 @@
+workflows:
+  android-apk:
+    name: Lich Viet Android APK (NTQ TECH)
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      node: latest
+      java: 21
+    cache:
+      cache_paths:
+        - ~/.npm
+        - ~/.gradle/caches
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+      - name: Run unit tests
+        script: |
+          npm test
+      - name: Build web assets & sync Capacitor Android
+        script: |
+          npm run build
+          npx cap sync android
+      - name: Configure Android SDK path
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Build Android APK
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+
+  ios-archive:
+    name: Lich Viet iOS Archive (NTQ TECH)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      node: latest
+      xcode: latest
+    cache:
+      cache_paths:
+        - ~/.npm
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+      - name: Build web assets & sync Capacitor iOS
+        script: |
+          npm run build
+          npx cap sync ios
+      - name: Build Unsigned iOS Archive
+        script: |
+          cd ios/App
+          xcodebuild \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$CM_BUILD_DIR/build/LichViet.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            archive
+    artifacts:
+      - build/LichViet.xcarchive
